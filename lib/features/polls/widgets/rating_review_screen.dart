@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../models/poll_result.dart';
 import '../../../shared/app_state.dart';
-import '../../../shared/service_locator.dart';
-import '../state/history_service.dart';
+import '../../history/cubit/history_cubit.dart';
 
 class RatingReviewScreen extends StatelessWidget {
   final String pollId;
@@ -62,7 +62,7 @@ class _RatingReviewFormState extends State<_RatingReviewForm> {
   final TextEditingController _reviewController = TextEditingController();
 
   void _saveAndComplete() {
-    final historyService = getIt<HistoryService>();
+    final historyCubit = context.read<HistoryCubit>();
     final appState = AppState.of(context);
 
     final result = PollResult(
@@ -75,7 +75,7 @@ class _RatingReviewFormState extends State<_RatingReviewForm> {
       review: _reviewController.text,
     );
 
-    historyService.addResult(result);
+    historyCubit.addResult(result);
     appState.incrementCompletedPollsCount();
     widget.onComplete();
   }
@@ -171,7 +171,7 @@ class _RatingReviewFormState extends State<_RatingReviewForm> {
             height: 50,
             child: TextButton(
               onPressed: () {
-                final historyService = getIt<HistoryService>();
+                final historyCubit = context.read<HistoryCubit>();
                 final appState = AppState.of(context);
 
                 final result = PollResult(
@@ -184,7 +184,7 @@ class _RatingReviewFormState extends State<_RatingReviewForm> {
                   review: '',
                 );
 
-                historyService.addResult(result);
+                historyCubit.addResult(result);
                 appState.incrementCompletedPollsCount();
                 widget.onComplete();
               },

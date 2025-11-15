@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../widgets/poll_question_screen.dart';
 import 'question3_screen.dart';
+import '../../../cubit/poll_cubit.dart';
 
 class Question2Screen extends StatelessWidget {
-  final int score;
-  const Question2Screen({super.key, required this.score});
+  const Question2Screen({super.key});
 
   void _navigateToNext(BuildContext context, int additionalScore) {
+    context.read<PollCubit>().answerQuestion(additionalScore);
+
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => Question3Screen(score: score + additionalScore),
-      ),
+      MaterialPageRoute(builder: (context) => const Question3Screen()),
     );
   }
 

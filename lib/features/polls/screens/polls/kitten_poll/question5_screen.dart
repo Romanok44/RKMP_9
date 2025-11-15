@@ -1,22 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../widgets/poll_question_screen.dart';
 import 'result_screen.dart';
+import '../../../cubit/poll_cubit.dart';
 
 class Question5Screen extends StatelessWidget {
-  final int score;
-  const Question5Screen({super.key, required this.score});
+  const Question5Screen({super.key});
 
   void _navigateToNext(BuildContext context, int additionalScore) {
+    final pollCubit = context.read<PollCubit>();
+
+    // Сначала добавляем баллы за последний вопрос
+    pollCubit.answerQuestion(additionalScore);
+
+    // Затем вычисляем результат и завершаем опрос
+    final state = pollCubit.state;
+    if (state is PollInProgress) {
+      final totalScore = state.currentScore;
+      String result;
+
+      if (totalScore <= 0) {
+        result = 'СОННЫЙ КОТЕНОК! 🐱‍💤';
+      } else if (totalScore <= 4) {
+        result = 'КОТЕНОК-НЕВЕДИМКА! 🐱‍👤';
+      } else if (totalScore <= 8) {
+        result = 'ИГРИВЫЙ И ЛЮБОЗНАТЕЛЬНЫЙ КОТЕНОК! 🐱‍🚀';
+      } else {
+        result = 'ДОБРЫЙ И СОЦИАЛЬНЫЙ КОТЕНОК! 🥰';
+      }
+
+      // Завершаем опрос с результатом
+      pollCubit.completePoll(result);
+    }
+
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => ResultScreen(
-          totalScore: score + additionalScore,
-          pollId: 'kitten_poll',
-          pollTitle: 'Какой ты сегодня котенок?',
-          pollCategory: 'Смешные опросы',
-        ),
-      ),
+      MaterialPageRoute(builder: (context) => const ResultScreen()),
     );
   }
 

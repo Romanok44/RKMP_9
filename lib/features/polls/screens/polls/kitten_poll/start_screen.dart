@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'question1_screen.dart';
+import '../../../cubit/poll_cubit.dart';
 
 class StartScreen extends StatelessWidget {
   const StartScreen({super.key});
 
   void _startQuiz(BuildContext context) {
+    // Запускаем опрос через Cubit
+    context.read<PollCubit>().startPoll(
+      'kitten_poll',
+      'Какой ты сегодня котенок?',
+      'Смешные опросы',
+    );
+
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const Question1Screen()),

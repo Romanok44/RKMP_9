@@ -1,25 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../polls/widgets/category_section.dart';
 import '../../polls/widgets/confirmation_dialog.dart';
 import '../widgets/empty_history_state.dart';
-import '../../../shared/service_locator.dart';
-import '../../polls/state/history_service.dart';
+import '../cubit/history_cubit.dart';
 
-class HistoryScreen extends StatefulWidget {
+class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
-
-  @override
-  State<HistoryScreen> createState() => _HistoryScreenState();
-}
-
-class _HistoryScreenState extends State<HistoryScreen> {
-  late final HistoryService historyService;
-
-  @override
-  void initState() {
-    super.initState();
-    historyService = getIt<HistoryService>();
-  }
 
   Map<String, List<dynamic>> _groupPollsByCategory(List<dynamic> polls) {
     final grouped = <String, List<dynamic>>{};
@@ -37,18 +24,18 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
   }
 
-  void _showClearConfirmationDialog() {
+  void _showClearConfirmationDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => ConfirmationDialog(
         title: 'Очистить историю',
         content: 'Вы уверены, что хотите удалить все результаты?',
-        onConfirm: () => historyService.clearHistory(),
+        onConfirm: () => context.read<HistoryCubit>().clearHistory(),
       ),
     );
   }
 
-  void _showResultDialog(dynamic poll) {
+  void _showResultDialog(BuildContext context, dynamic poll) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -121,38 +108,46 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('История опросов'),
-        backgroundColor: Colors.blue[700],
-        actions: [
-          if (historyService.results.isNotEmpty)
-            IconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: _showClearConfirmationDialog,
-              tooltip: 'Очистить историю',
-            ),
-        ],
-      ),
-      body: ListenableBuilder(
-        listenable: historyService,
-        builder: (context, child) {
-          final completedPolls = historyService.results;
-          final groupedPolls = _groupPollsByCategory(completedPolls);
+    return BlocBuilder<HistoryCubit, HistoryState>(
+      builder: (context, state) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('История опросов'),
+            backgroundColor: Colors.blue[700],
+            actions: [
+              if (state.results.isNotEmpty)
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () => _showClearConfirmationDialog(context),
+                  tooltip: 'Очистить историю',
+                ),
+            ],
+          ),
+          body: _buildBody(context, state),
+        );
+      },
+    );
+  }
 
-          return completedPolls.isEmpty
-              ? const EmptyHistoryState()
-              : ListView(
-            children: groupedPolls.entries.map((entry) {
-              return CategorySection(
-                category: entry.key,
-                polls: entry.value,
-                onPollTap: (poll) => _showResultDialog(poll),
-              );
-            }).toList(),
-          );
-        },
-      ),
+  Widget _buildBody(BuildContext context, HistoryState state) {
+    if (state.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (state.results.isEmpty) {
+      return const EmptyHistoryState();
+    }
+
+    final groupedPolls = _groupPollsByCategory(state.results);
+
+    return ListView(
+      children: groupedPolls.entries.map((entry) {
+        return CategorySection(
+          category: entry.key,
+          polls: entry.value,
+          onPollTap: (poll) => _showResultDialog(context, poll),
+        );
+      }).toList(),
     );
   }
 }

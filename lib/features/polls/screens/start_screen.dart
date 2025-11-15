@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'poll_flow/category_selection_screen.dart';
 import '../../history/screens/history_screen.dart';
 import '../../../shared/app_state.dart';
-import '../../../shared/service_locator.dart';
-import '../state/history_service.dart';
+import '../../auth/cubit/auth_cubit.dart';
 
 class StartScreen extends StatelessWidget {
   const StartScreen({super.key});
@@ -11,12 +11,20 @@ class StartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final appState = AppState.of(context);
-    final historyService = getIt<HistoryService>();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text('Poll Tracker'),
         backgroundColor: Colors.blue[700],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () {
+              context.read<AuthCubit>().logout();
+            },
+            tooltip: 'Выйти',
+          ),
+        ],
       ),
       body: Center(
         child: Column(
@@ -27,7 +35,7 @@ class StartScreen extends StatelessWidget {
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            // Использование InheritedWidget
+            // Использование InheritedWidget (остается как в примере)
             Card(
               margin: const EdgeInsets.all(16),
               child: Padding(
@@ -35,7 +43,7 @@ class StartScreen extends StatelessWidget {
                 child: Column(
                   children: [
                     const Text(
-                      'Статистика (InheritedWidget)',
+                      'Статистика',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -45,30 +53,6 @@ class StartScreen extends StatelessWidget {
                     const SizedBox(height: 10),
                     Text(
                       'Завершено опросов: ${appState.completedPollsCount}',
-                      style: const TextStyle(fontSize: 16),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            // Использование GetIt
-            Card(
-              margin: const EdgeInsets.all(16),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    const Text(
-                      'История (GetIt)',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'Сохранено результатов: ${historyService.results.length}',
                       style: const TextStyle(fontSize: 16),
                     ),
                   ],
